@@ -38,4 +38,4 @@ def parse(self, kwargs):
 
 
 DefaultConfig.parse = parse
-opt = DefaultConfig()
+args = DefaultConfig()

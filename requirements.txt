@@ -3,3 +3,4 @@ fire
 numpy
 torchvision
 visdom
+opencv-python
