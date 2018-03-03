@@ -7,7 +7,9 @@
 # ==============================
 """
 
-
+import torch
+from torch.autograd import Variable
+import torch.nn.functional as F
 import png
 import numpy as np
 import matplotlib.colors as cl
@@ -256,8 +258,8 @@ def warp_image(im, flow):
     flow_height = flow.shape[0]
     flow_width = flow.shape[1]
     n = image_height * image_width
-    (iy, ix) = np.mgrid[0:image_height, 0:image_width]
-    (fy, fx) = np.mgrid[0:flow_height, 0:flow_width]
+    (iy, ix) = np.mgrid[0:image_height, 0:image_width].astype(np.float64)
+    (fy, fx) = np.mgrid[0:flow_height, 0:flow_width].astype(np.float64)
     fx += flow[:,:,0]
     fy += flow[:,:,1]
     mask = np.logical_or(fx <0 , fx > flow_width)
@@ -268,9 +270,10 @@ def warp_image(im, flow):
     points = np.concatenate((ix.reshape(n,1), iy.reshape(n,1)), axis=1)
     xi = np.concatenate((fx.reshape(n, 1), fy.reshape(n,1)), axis=1)
     warp = np.zeros((image_height, image_width, im.shape[2]))
-    for i in range(im.shape[2]):
+    for i in range(im.shape[2]): # for each channel
+        print(i)
         channel = im[:, :, i]
-        plt.imshow(channel, cmap='gray')
+        #plt.imshow(channel, cmap='gray')
         values = channel.reshape(n, 1)
         new_channel = interpolate.griddata(points, values, xi, method='cubic')
         new_channel = np.reshape(new_channel, [flow_height, flow_width])
@@ -279,3 +282,41 @@ def warp_image(im, flow):
 
     return warp.astype(np.uint8)
 
+
+def warp_image_with_flow(x, flow, padding_mode='zeros'):
+    """Warp an image or feature map with optical flow
+    Args:
+        x (Variable): size (n, c, h, w)
+        flow (Variable): size (n, 2, h, w), values range from 0 to 1 (relevant to image width or height)
+        padding_mode (str): 'zeros' or 'border'
+
+    Returns:
+        Variable: warped image or feature map
+    """
+    assert x.size()[-2:] == flow.size()[-2:]
+    n, _, h, w = x.size()
+    img = x
+    x = torch.arange(w).view(1, -1).expand(h, -1)
+    y = torch.arange(h).view(-1, 1).expand(-1, w)
+    grid = torch.stack([x, y], dim=0).float().cuda()
+    grid = grid.unsqueeze(0).expand(n, -1, -1, -1)
+    print(grid.size())
+
+    grid[:, 0, :, :] = 2 * grid[:, 0, :, :] / (w - 1) - 1
+    grid[:, 1, :, :] = 2 * grid[:, 1, :, :] / (h - 1) - 1
+    grid = Variable(grid)
+    grid += 2 * flow
+    grid = grid.permute(0, 2, 3, 1)
+
+    print(grid)
+    return F.grid_sample(img, grid, padding_mode=padding_mode)
+
+def warp_image_with_flow2(x, flow, padding_mode='zeros'):
+    assert x.size()[-2:] == flow.size()[-2:]
+    max = torch.max(flow)
+    min = torch.min(flow)
+    flow = flow / (max - min)
+    flow = flow.permute(0, 2, 3, 1)
+    print(x.size())
+    print(flow.size())
+    return F.grid_sample(x, flow, padding_mode=padding_mode)

@@ -2,6 +2,10 @@
 import warnings
 
 class DefaultConfig(object):
+
+    im1_path = "/home/lxt/data/CityScapes/leftImg8bit_sequence/train/aachen/aachen_000000_000000_leftImg8bit.png"
+    im2_path = "/home/lxt/data/CityScapes/leftImg8bit_sequence/train/aachen/aachen_000000_000001_leftImg8bit.png"
+
     env = 'default'  # visdom 环境
     model = 'ResNet34'  # 使用的模型，名字必须与models/__init__.py中的名字一致
 

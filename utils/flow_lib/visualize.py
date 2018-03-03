@@ -17,6 +17,16 @@ UNKNOWN_FLOW_THRESH = 1e7
 SMALLFLOW = 0.0
 LARGEFLOW = 1e8
 
+def visualize_img(img):
+    """
+    visualize the images using matplotlib
+    :param img: input image array()
+    :return: None
+    """
+    plt.imshow(img)
+    plt.show()
+    return None
+
 
 def show_flow(filename):
     """
