@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as nn_init
 
-from .utils import conv, deconv, predict_flow, tofp16, tofp32
+from models.utils import conv, deconv, predict_flow, tofp16, tofp32
 from .package import Correlation
 'Parameter count , 39,175,298 '
 
